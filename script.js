@@ -3,32 +3,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const messageInput = document.getElementById("message-input");
     const sendButton = document.getElementById("send-button");
 
-    // Connect to WebSocket server
-    const socket = io("http://localhost:3000");
+    // Replace with your Cloudflare Worker WebSocket URL
+    const websocketUrl = "wss://your-worker-url.example.com";
+    const socket = new WebSocket(websocketUrl);
 
-    // Load existing messages
-    socket.on("loadMessages", (messages) => {
-        messages.forEach(message => {
+    socket.addEventListener("open", () => {
+        console.log("WebSocket connection established");
+    });
+
+    socket.addEventListener("message", (event) => {
+        const messageText = event.data;
             const messageElement = document.createElement("div");
-            messageElement.textContent = message;
+        messageElement.textContent = messageText;
             messagesDiv.appendChild(messageElement);
-        });
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
 
-    // Receive new messages
-    socket.on("receiveMessage", (message) => {
-        const messageElement = document.createElement("div");
-        messageElement.textContent = message;
-        messagesDiv.appendChild(messageElement);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    socket.addEventListener("close", () => {
+        console.log("WebSocket connection closed");
     });
-
     sendButton.addEventListener("click", () => {
         const messageText = messageInput.value;
         if (messageText) {
-            socket.emit("sendMessage", messageText);
-            messageInput.value = ""; // Clear the input
+            socket.send(messageText);
+            messageInput.value = "";
         }
     });
 });
+
